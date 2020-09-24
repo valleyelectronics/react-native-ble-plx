@@ -240,11 +240,15 @@ public class BleModule extends ReactContextBaseJavaModule {
                     }
                 });
 
-        if (!bluetoothAdapter.enable()) {
-            subscription.unsubscribe();
-            new BleError(BleErrorCode.BluetoothStateChangeFailed, "Couldn't enable bluetooth adapter", null).reject(safePromise);
-        } else {
-            transactions.replaceSubscription(transactionId, subscription);
+        try {
+          if (!bluetoothAdapter.enable()) {
+              subscription.unsubscribe();
+              new BleError(BleErrorCode.BluetoothStateChangeFailed, "Couldn't enable bluetooth adapter", null).reject(safePromise);
+          } else {
+              transactions.replaceSubscription(transactionId, subscription);
+          }
+        } catch (NullPointerException e) {
+          
         }
     }
 
