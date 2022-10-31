@@ -4,11 +4,9 @@ def safeExtGet(prop, fallback) {
 
 buildscript {
     repositories {
-        jcenter()
-        maven {
-            url 'https://maven.google.com/'
-            name 'Google'
-        }
+        google()
+        mavenCentral()
+        maven { url 'https://www.jitpack.io' }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.1.4'
@@ -30,18 +28,18 @@ android {
     }
 }
 
-repositories {
-    mavenLocal()
-    jcenter()
-    maven {
-        // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
-        url "$projectDir/../../../node_modules/react-native/android"
+allprojects {
+    repositories {
+        mavenCentral()
+        mavenLocal()
+        maven {
+            // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+            url("$rootDir/../node_modules/react-native/android")
+        }
+
+        google()
+        maven { url 'https://www.jitpack.io' }
     }
-    maven {
-        url 'https://maven.google.com/'
-        name 'Google'
-    }
-    maven { url "https://jitpack.io" }
 }
 
 dependencies {
