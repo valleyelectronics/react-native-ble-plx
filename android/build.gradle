@@ -44,5 +44,5 @@ allprojects {
 
 dependencies {
     implementation "com.facebook.react:react-native:+"
-    implementation 'com.github.valleyelectronics:MultiPlatformBleAdapter:240f3fa692370cd7087ef24a47b6a51a1127d482'
+    implementation 'com.github.valleyelectronics:MultiPlatformBleAdapter:5b6cf1d667dceab0d03f4759692fbf897628913d'
 }
