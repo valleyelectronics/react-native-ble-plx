@@ -1060,6 +1060,12 @@ declare module 'react-native-ble-plx' {
     enable(transactionId?: TransactionId): Promise<BleManager>
 
     /**
+     * Request to enabling Bluetooth. This request blocks until the request dialog is done or cancelled. [Android only]
+     * @returns {Promise<boolean>} Promise completes when state transition was successful.
+     */
+    requestToEnable(): Promise<boolean>
+
+    /**
      * Disable Bluetooth. This function blocks until BLE is in PoweredOff state. [Android only]
      *
      * @param {?TransactionId} transactionId Transaction handle used to cancel operation

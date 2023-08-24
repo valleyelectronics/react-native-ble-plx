@@ -41,6 +41,17 @@ import java.util.Map;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+// https://github.com/patlux/react-native-bluetooth-state-manager/blob/master/android/src/main/java/de/patwoz/rn/bluetoothstatemanager/RNBluetoothStateManagerModule.java
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.util.Log;
+
+import com.facebook.react.bridge.ActivityEventListener;
+import com.facebook.react.bridge.BaseActivityEventListener;
 
 public class BleClientManager extends ReactContextBaseJavaModule {
 
@@ -96,6 +107,7 @@ public class BleClientManager extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void destroyClient() {
+        removeRequestToEnableListener();
         bleAdapter.destroyClient();
         bleAdapter = null;
     }
@@ -927,7 +939,7 @@ public class BleClientManager extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void addListener(String eventName) {
-      // Keep: Required for RN built in Event Emitter Calls.  
+      // Keep: Required for RN built in Event Emitter Calls.
     }
 
     @ReactMethod
@@ -940,4 +952,69 @@ public class BleClientManager extends ReactContextBaseJavaModule {
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                 .emit(event.name, params);
     }
+
+    // --------------------------------------------------------------------------------------------- -
+    // REQUEST TO ENABLE BLUETOOTH
+    // https://github.com/patlux/react-native-bluetooth-state-manager/blob/master/android/src/main/java/de/patwoz/rn/bluetoothstatemanager/RNBluetoothStateManagerModule.java
+
+   private final static int REQUEST_ENABLE_BT = 795;
+   private Promise requestToEnablePromise;
+   private final Intent INTENT_REQUEST_ENABLE_BLUETOOTH = new Intent(
+           BluetoothAdapter.ACTION_REQUEST_ENABLE
+   );
+
+   private void addRequestToEnableListener(Promise promise) {
+       this.requestToEnablePromise = promise;
+       this.getReactApplicationContext().addActivityEventListener(this.requestToEnableListener);
+   }
+
+   private void removeRequestToEnableListener() {
+       this.getReactApplicationContext().removeActivityEventListener(this.requestToEnableListener);
+       this.requestToEnablePromise = null;
+   }
+
+   @ReactMethod
+   public void requestToEnable(Promise promise) {
+       Activity currentActivity = this.handleCurrentActivity(promise);
+       if (currentActivity == null) { return; }
+
+       this.addRequestToEnableListener(promise);
+       currentActivity.startActivityForResult(INTENT_REQUEST_ENABLE_BLUETOOTH, REQUEST_ENABLE_BT);
+   }
+
+   private final ActivityEventListener requestToEnableListener = new BaseActivityEventListener() {
+       @Override
+       public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent intent) {
+           if (requestCode != REQUEST_ENABLE_BT) { return; }
+
+           if (requestToEnablePromise == null) {
+               Log.w(
+                       "RNBluetoothStateManager",
+                       "onActivityResult() :: Result code:" + resultCode + " ::'requestToEnablePromise' should be defined!"
+               );
+           } else {
+               if (resultCode == Activity.RESULT_CANCELED) {
+                   requestToEnablePromise.reject("CANCELED", "The user canceled the action.");
+               } else if (resultCode == Activity.RESULT_OK) {
+                   requestToEnablePromise.resolve(true);
+               } else {
+                   Log.w(
+                           "RNBluetoothStateManager",
+                           "onActivityResult() :: Result code:" + resultCode + " :: Unhandled result code"
+                   );
+                   requestToEnablePromise.resolve(false);
+               }
+           }
+
+           removeRequestToEnableListener();
+       }
+   };
+
+   private Activity handleCurrentActivity(Promise promise) {
+       Activity currentActivity = getCurrentActivity();
+       if (currentActivity == null) {
+           promise.reject("INTERNAL_ERROR", "There is no activity");
+       }
+       return currentActivity;
+   }
 }

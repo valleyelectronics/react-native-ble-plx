@@ -238,6 +238,14 @@ export class BleManager {
   }
 
   /**
+   * Request to enabling Bluetooth. This request blocks until the request dialog is done or cancelled. [Android only]
+   * @returns {Promise<boolean>} Promise completes when state transition was successful.
+   */
+  async requestToEnable(): Promise<boolean> {
+    return await this._callPromise(BleModule.requestToEnable())
+  }
+
+  /**
    * Disable Bluetooth. This function blocks until BLE is in PoweredOff state. [Android only]
    *
    * @param {?TransactionId} transactionId Transaction handle used to cancel operation
